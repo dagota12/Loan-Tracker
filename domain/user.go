@@ -32,7 +32,7 @@ type UserForm struct {
 	FirstName string    `json:"first_name" bson:"first_name" binding:"required,min=3,max=30"`
 	LastName  string    `json:"last_name" bson:"last_name" binding:"max=30"`
 	Email     string    `json:"email" bson:"email" binding:"required,email"`
-	Password  string    `json:"-" bson:"password" binding:"required"`
+	Password  string    `json:"password" bson:"password" binding:"required"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
@@ -45,6 +45,8 @@ type UserRepository interface {
 	Create(ctx context.Context, user User) (User, error)
 	Update(ctx context.Context, userID string, user UserUpdate) (User, error)
 	Delete(ctx context.Context, userID string) error
+
+	IsOwner(ctx context.Context, userID string) (bool, error)
 
 	RevokeRefreshToken(ctx context.Context, userID, refreshToken string) error
 	UpdateRefreshToken(ctx context.Context, userID string, refreshToken string) error

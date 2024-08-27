@@ -18,4 +18,5 @@ func NewAuthRouter(env *bootstrap.Env, timeout time.Duration, db *mongo.Database
 
 	group.POST("/users/login", authController.Login)
 	group.POST("/users/token/refresh", authController.RefreshToken)
+	// group.POST("/users/verify-email", authController.AuthUsecase)
 }

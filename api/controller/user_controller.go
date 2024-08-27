@@ -125,3 +125,20 @@ func (uc *UserController) UpdatePassword(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "password updated successfully"})
 }
+
+// /gets user prom context
+func (uc *UserController) GetUserProfile(ctx *gin.Context) {
+	userID := ctx.MustGet("x-user-id").(string)
+	if userID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "missing user ID"})
+		return
+	}
+
+	user, err := uc.userUsecase.GetByID(context.Background(), userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}

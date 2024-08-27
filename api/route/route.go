@@ -29,8 +29,11 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db *mongo.Database, gin *g
 
 func NewSignupRouter(env *bootstrap.Env, timeout time.Duration, db *mongo.Database, group *gin.RouterGroup) {
 	userRepo := repository.NewUserRepository(db)
-	userUsecase := usecase.NewUserUsecase(userRepo, env)
-	userController := controller.NewUserController(userUsecase)
+	signupUsecase := usecase.NewSignupUsecase(userRepo, time.Duration(env.ContextTimeout))
+	sc := controller.SignupController{
+		SignupUsecase: signupUsecase,
+		Env:           env,
+	}
 
-	group.POST("/users/register", userController.Register)
+	group.POST("/users/register", sc.Signup)
 }

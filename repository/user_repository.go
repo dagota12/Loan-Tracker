@@ -147,6 +147,27 @@ func (ur *userRepository) IsUserActive(ctx context.Context, userID string) (bool
 	return user.Active, nil
 }
 
+func (ur *userRepository) IsOwner(ctx context.Context, userID string) (bool, error) {
+	ObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return false, ErrInvalidID
+	}
+
+	filter := bson.M{"_id": ObjID}
+	user := domain.User{}
+	//check if user exists
+	err = ur.users.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, ErrUserNotFound
+		}
+		log.Println("[repo] on is user active", err)
+		return false, err
+	}
+	return user.IsOwner, nil
+
+}
+
 // RefreshTokenExist implements domain.UserRepository.
 func (ur *userRepository) RefreshTokenExist(ctx context.Context, userID string, refreshToken string) (bool, error) {
 	ObjID, err := primitive.ObjectIDFromHex(userID)
