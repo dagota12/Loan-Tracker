@@ -64,4 +64,6 @@ type UserUsecase interface {
 	Create(ctx context.Context, user User) (User, error)
 	Update(ctx context.Context, userID string, user UserUpdate) (User, error)
 	Delete(ctx context.Context, userID string) error
+	ResetUserPassword(ctx context.Context, userID string, resetPassword ResetPasswordRequest) error
+	UpdateUserPassword(ctx context.Context, userID string, updatePassword UpdatePassword) error
 }

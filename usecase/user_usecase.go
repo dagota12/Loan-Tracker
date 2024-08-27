@@ -119,3 +119,13 @@ func (uc *userUsecase) Update(ctx context.Context, userID string, user domain.Us
 
 	return updatedUser, nil
 }
+
+// ResetUserPassword implements domain.UserUsecase.
+func (uc *userUsecase) ResetUserPassword(ctx context.Context, userID string, resetPassword domain.ResetPasswordRequest) error {
+	panic("unimplemented")
+}
+
+// UpdateUserPassword implements domain.UserUsecase.
+func (uc *userUsecase) UpdateUserPassword(ctx context.Context, userID string, updatePassword domain.UpdatePassword) error {
+	panic("unimplemented")
+}
