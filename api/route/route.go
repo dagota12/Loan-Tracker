@@ -3,6 +3,7 @@ package route
 import (
 	"time"
 
+	"github.com/dagota12/Loan-Tracker/api/middleware"
 	"github.com/dagota12/Loan-Tracker/bootstrap"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,9 +19,6 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db *mongo.Database, gin *g
 	NewRefreshTokenRouter(env, timeout, db, publicRouter)
 	NewPublicBlogsRouter(env, timeout, db, publicRouter)
 	NewPublicResetPasswordRouter(env, timeout, db, publicRouter)
-
-	// Static files
-	// NewPublicFileRouter(env, publicRouter)
 
 	protectedRouter := gin.Group("")
 	protectedRouter.Use(middleware.JwtAuthMiddleware(env.AccessTokenSecret))

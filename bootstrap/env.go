@@ -25,6 +25,7 @@ type Env struct {
 	SmtpPort                   string `mapstructure:"SMTP_PORT"`
 	SmtpHost                   string `mapstructure:"SMTP_HOST"`
 	SenderPassword             string `mapstructure:"SENDER_PASSWORD"`
+	PassResetCodeExpirationMin int    `mapstructure:"PASS_RESET_CODE_EXPIRATION_MIN"`
 }
 
 func NewEnv() *Env {

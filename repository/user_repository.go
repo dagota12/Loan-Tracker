@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var (
@@ -184,20 +185,100 @@ func (ur *userRepository) ResetUserPassword(ctx context.Context, userID string, 
 
 // RevokeRefreshToken implements domain.UserRepository.
 func (ur *userRepository) RevokeRefreshToken(ctx context.Context, userID string, refreshToken string) error {
-	panic("unimplemented")
+	ObjID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrInvalidID
+	}
+
+	filter := bson.M{"_id": ObjID}
+	update := bson.M{"$pull": bson.M{"refresh_tokens": refreshToken}}
+	res, err := ur.users.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if res.ModifiedCount == 0 {
+		return ErrUserNotFound
+	}
+	return nil
 }
 
-// Update implements domain.UserRepository.
+// Update updates the user information by user ID.
 func (ur *userRepository) Update(ctx context.Context, userID string, user domain.UserUpdate) (domain.User, error) {
-	panic("unimplemented")
+	// Convert string ID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return domain.User{}, ErrInvalidID
+	}
+
+	// Define update fields using bson.D
+	updateFields := bson.M{"$set": user}
+	// Create update document
+	update := bson.D{
+		{Key: "$set", Value: updateFields},
+	}
+
+	// Perform the update operation
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var updatedUser domain.User
+	err = ur.users.FindOneAndUpdate(ctx, bson.M{"_id": objID}, update, opts).Decode(&updatedUser)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, err
+	}
+
+	return updatedUser, nil
 }
 
-// UpdateRefreshToken implements domain.UserRepository.
+// UpdateRefreshToken updates the refresh token of the user.
 func (ur *userRepository) UpdateRefreshToken(ctx context.Context, userID string, refreshToken string) error {
-	panic("unimplemented")
+	// Convert string ID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrInvalidID
+	}
+
+	// Define update fields
+	update := bson.D{
+		{Key: "$push", Value: bson.D{{Key: "refresh_tokens", Value: refreshToken}}},
+	}
+
+	// Perform the update operation
+	result, err := ur.users.UpdateOne(ctx, bson.M{"_id": objID}, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
 }
 
-// UpdateUserPassword implements domain.UserRepository.
+// UpdateUserPassword updates the user's password.
 func (ur *userRepository) UpdateUserPassword(ctx context.Context, userID string, updatePassword domain.UpdatePassword) error {
-	panic("unimplemented")
+	// Convert string ID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return ErrInvalidID
+	}
+
+	// Define update fields
+	update := bson.D{
+		{Key: "$set", Value: bson.D{{Key: "password", Value: updatePassword.NewPassword}}},
+	}
+
+	// Perform the update operation
+	result, err := ur.users.UpdateOne(ctx, bson.M{"_id": objID}, update)
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return ErrUserNotFound
+	}
+
+	return nil
 }
