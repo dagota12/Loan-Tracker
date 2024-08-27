@@ -20,13 +20,13 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 		authorized, err := tokenutil.IsAuthorized(authToken, secret)
 
 		if err != nil || !authorized {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, custom_error.ErrMessage(err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}
 
 		claims, err := tokenutil.ExtractUserClaimsFromToken(authToken, secret)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, custom_error.ErrMessage(err))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
 		c.Set("x-user-id", claims["id"])
@@ -40,7 +40,7 @@ func AdminMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		role := ctx.MustGet("x-user-role")
 		if role != "admin" {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, custom_error.ErrorMessage{Message: "unauthorized"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			ctx.Abort()
 		}
 		ctx.Next()
