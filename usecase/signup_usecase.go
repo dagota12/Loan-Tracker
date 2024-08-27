@@ -33,8 +33,6 @@ func (su *signupUsecase) ActivateUser(ctx context.Context, userID string) error 
 }
 
 func (su *signupUsecase) Create(ctx context.Context, user *domain.User) (domain.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, su.contextTimeout)
-	defer cancel()
 	return su.userRepository.Create(ctx, *user)
 }
 
@@ -43,8 +41,6 @@ func (su *signupUsecase) IsOwner(ctx context.Context, userID string) (bool, erro
 	return result, err
 }
 func (su *signupUsecase) GetUserByEmail(ctx context.Context, email string) (domain.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, su.contextTimeout)
-	defer cancel()
 	user, err := su.userRepository.GetByEmail(ctx, email)
 	if err != nil {
 		return domain.User{}, err
@@ -66,4 +62,10 @@ func (su *signupUsecase) CreateVerificationToken(user *domain.User, secret strin
 
 func (su *signupUsecase) SendVerificationEmail(recipientEmail string, encodedToken string, env *bootstrap.Env) (err error) {
 	return emailutil.SendVerificationEmail(recipientEmail, encodedToken, env)
+}
+
+// CanBeOwner implements domain.SignupUsecase.
+func (su *signupUsecase) CanBeOwner(ctx context.Context) (bool, error) {
+	users, _ := su.userRepository.GetAll(ctx)
+	return len(users) == 0, nil
 }

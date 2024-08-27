@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -164,7 +165,7 @@ func (ur *userRepository) IsOwner(ctx context.Context, userID string) (bool, err
 		log.Println("[repo] on is user active", err)
 		return false, err
 	}
-	return user.IsOwner, nil
+	return user.Active, nil
 
 }
 
