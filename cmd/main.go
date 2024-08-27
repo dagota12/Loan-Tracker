@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"github.com/dagota12/Loan-Tracker/api/route"
@@ -23,7 +24,7 @@ func main() {
 
 	// Set the timeout for the context of the request
 	timeout := time.Duration(env.ContextTimeout) * time.Second
-
+	log.Println("[main] context timeout", timeout)
 	// Initialize the gin
 	gin := gin.Default()
 

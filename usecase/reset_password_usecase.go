@@ -19,25 +19,20 @@ func NewResetPasswordUsecase(resetPasswordRepository domain.ResetPasswordReposit
 		contextTimeout:          timeout,
 	}
 }
-func (r *resetPasswordUsecase) SaveOtp(c context.Context, otp *domain.OtpSave) error {
-	ctx, cancel := context.WithTimeout(c, r.contextTimeout)
-	defer cancel()
+func (r *resetPasswordUsecase) SaveOtp(ctx context.Context, otp *domain.OtpSave) error {
 	err := r.resetPasswordRepository.SaveOtp(ctx, otp)
 	return err
 }
 
-func (r *resetPasswordUsecase) GetUserByEmail(c context.Context, email string) (domain.User, error) {
-	ctx, cancel := context.WithTimeout(c, r.contextTimeout)
-	defer cancel()
+func (r *resetPasswordUsecase) GetUserByEmail(ctx context.Context, email string) (domain.User, error) {
+
 	user, err := r.resetPasswordRepository.GetUserByEmail(ctx, email)
 	if err != nil {
 		return domain.User{}, err
 	}
 	return *user, nil
 }
-func (r *resetPasswordUsecase) ResetPassword(c context.Context, userID string, resetPassword *domain.ResetPasswordRequest) error {
-	ctx, cancel := context.WithTimeout(c, r.contextTimeout)
-	defer cancel()
+func (r *resetPasswordUsecase) ResetPassword(ctx context.Context, userID string, resetPassword *domain.ResetPasswordRequest) error {
 	//enctypt the user password
 
 	bcryptPassword, err := bcrypt.GenerateFromPassword([]byte(resetPassword.NewPassword), bcrypt.DefaultCost)
@@ -50,18 +45,16 @@ func (r *resetPasswordUsecase) ResetPassword(c context.Context, userID string, r
 	return err
 }
 
-func (r *resetPasswordUsecase) GetOTPByEmail(c context.Context, email string) (*domain.OtpSave, error) {
-	ctx, cancel := context.WithTimeout(c, r.contextTimeout)
-	defer cancel()
+func (r *resetPasswordUsecase) GetOTPByEmail(ctx context.Context, email string) (*domain.OtpSave, error) {
+
 	otp, err := r.resetPasswordRepository.GetOTPByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
 	return otp, nil
 }
-func (r *resetPasswordUsecase) DeleteOtp(c context.Context, email string) error {
-	ctx, cancel := context.WithTimeout(c, r.contextTimeout)
-	defer cancel()
+func (r *resetPasswordUsecase) DeleteOtp(ctx context.Context, email string) error {
+
 	err := r.resetPasswordRepository.DeleteOtp(ctx, email)
 	return err
 }

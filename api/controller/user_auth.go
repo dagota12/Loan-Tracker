@@ -95,7 +95,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	userID := claims["user_id"].(string)
+	userID := claims["id"].(string)
 	user, err := ac.AuthUsecase.GetUserByID(c, userID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

@@ -20,9 +20,9 @@ type SignupResponse struct {
 type SignupUsecase interface {
 	Create(ctx context.Context, user *User) (User, error)
 	ActivateUser(c context.Context, userID string) error
-	IsOwner(ctx context.Context, userID string) (bool, error)
-	GetUserById(c context.Context, userId string) (*User, error)
-	GetUserByEmail(c context.Context, email string) (User, error)
+	CanBeOwner(ctx context.Context) (bool, error)
+	GetUserById(ctx context.Context, userId string) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	CreateVerificationToken(user *User, secret string, expiry int) (accessToken string, err error)
 	CreateAccessToken(user *User, secret string, expiry int) (accessToken string, err error)
 	CreateRefreshToken(user *User, secret string, expiry int) (refreshToken string, err error)

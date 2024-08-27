@@ -95,8 +95,6 @@ func (uc *userUsecase) GetByEmail(ctx context.Context, email string) (domain.Use
 // GetByID implements domain.UserUsecase.
 // GetByID retrieves a user by their ID.
 func (uc *userUsecase) GetByID(ctx context.Context, userID string) (domain.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, uc.contextTimeout)
-	defer cancel()
 
 	user, err := uc.UserRepo.GetByID(ctx, userID)
 	if err != nil {
@@ -109,8 +107,6 @@ func (uc *userUsecase) GetByID(ctx context.Context, userID string) (domain.User,
 // Update implements domain.UserUsecase.
 // Update updates user details by user ID.
 func (uc *userUsecase) Update(ctx context.Context, userID string, user domain.UserUpdate) (domain.User, error) {
-	ctx, cancel := context.WithTimeout(ctx, uc.contextTimeout)
-	defer cancel()
 
 	updatedUser, err := uc.UserRepo.Update(ctx, userID, user)
 	if err != nil {
@@ -123,10 +119,6 @@ func (uc *userUsecase) Update(ctx context.Context, userID string, user domain.Us
 // ResetUserPassword implements domain.UserUsecase.
 // ResetUserPassword resets the user's password using a reset token or temporary password.
 func (uc *userUsecase) ResetUserPassword(ctx context.Context, userID string, resetPassword domain.ResetPasswordRequest) error {
-	// Set up a context with a timeout
-	ctx, cancel := context.WithTimeout(ctx, uc.contextTimeout)
-	defer cancel()
-
 	// Check if the user is active before proceeding with password reset
 	active, err := uc.UserRepo.IsUserActive(ctx, userID)
 	if err != nil {
@@ -147,10 +139,6 @@ func (uc *userUsecase) ResetUserPassword(ctx context.Context, userID string, res
 
 // UpdateUserPassword updates the user's password.
 func (uc *userUsecase) UpdateUserPassword(ctx context.Context, userID string, updatePassword domain.UpdatePassword) error {
-	// Set up a context with a timeout
-	ctx, cancel := context.WithTimeout(ctx, uc.contextTimeout)
-	defer cancel()
-
 	// Verify if the user is active
 	active, err := uc.UserRepo.IsUserActive(ctx, userID)
 	if err != nil {
