@@ -121,11 +121,66 @@ func (uc *userUsecase) Update(ctx context.Context, userID string, user domain.Us
 }
 
 // ResetUserPassword implements domain.UserUsecase.
+// ResetUserPassword resets the user's password using a reset token or temporary password.
 func (uc *userUsecase) ResetUserPassword(ctx context.Context, userID string, resetPassword domain.ResetPasswordRequest) error {
-	panic("unimplemented")
+	// Set up a context with a timeout
+	ctx, cancel := context.WithTimeout(ctx, uc.contextTimeout)
+	defer cancel()
+
+	// Check if the user is active before proceeding with password reset
+	active, err := uc.UserRepo.IsUserActive(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !active {
+		return errors.New("user is not active or does not exist")
+	}
+
+	// Call the repository method to reset the password
+	err = uc.UserRepo.ResetUserPassword(ctx, userID, resetPassword)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// UpdateUserPassword implements domain.UserUsecase.
+// UpdateUserPassword updates the user's password.
 func (uc *userUsecase) UpdateUserPassword(ctx context.Context, userID string, updatePassword domain.UpdatePassword) error {
-	panic("unimplemented")
+	// Set up a context with a timeout
+	ctx, cancel := context.WithTimeout(ctx, uc.contextTimeout)
+	defer cancel()
+
+	// Verify if the user is active
+	active, err := uc.UserRepo.IsUserActive(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !active {
+		return errors.New("user is not active or does not exist")
+	}
+
+	// Validate the current password
+	user, err := uc.UserRepo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if security.CheckPasswordHash(updatePassword.OldPassword, user.Password) {
+		return errors.New("current password is incorrect")
+	}
+
+	// Update the password using the repository method
+	// Hash the new password before updating
+	hashedPassword, err := security.HashPassword(updatePassword.NewPassword)
+	if err != nil {
+		return err
+	}
+	updatePassword.NewPassword = hashedPassword
+	err = uc.UserRepo.UpdateUserPassword(ctx, userID, updatePassword)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
