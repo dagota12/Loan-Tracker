@@ -34,8 +34,8 @@ func NewLoanRouter(env *bootstrap.Env, timeout time.Duration, db *mongo.Database
 	adminLoanGroup := group.Group("/admin/loans")
 	adminLoanGroup.Use(adminMiddleware)
 	{
-		adminLoanGroup.GET("", lc.ViewAllLoansWithPagination)      // View all loans with pagination
-		adminLoanGroup.PATCH("/:id/:status", lc.ApproveRejectLoan) // Approve or reject a loan
-		adminLoanGroup.DELETE("/:id", lc.DeleteLoan)               // Delete a loan
+		adminLoanGroup.GET("", lc.ViewAllLoansWithPagination) // View all loans with pagination
+		adminLoanGroup.PATCH("/:id", lc.ApproveRejectLoan)    // Approve or reject a loan
+		adminLoanGroup.DELETE("/:id", lc.DeleteLoan)          // Delete a loan
 	}
 }

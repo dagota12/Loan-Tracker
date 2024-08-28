@@ -22,13 +22,21 @@ func NewLoanRepository(db *mongo.Database) domain.LoanRepository {
 	}
 }
 
-func (lr *loanRepository) CreateLoan(ctx context.Context, loan *domain.Loan) error {
+func (lr *loanRepository) CreateLoan(ctx context.Context, loan *domain.Loan) (*domain.Loan, error) {
 	loan.CreatedAt = time.Now()
 	loan.UpdatedAt = time.Now()
 	loan.Status = "pending" // default status
 
-	_, err := lr.collection.InsertOne(ctx, loan)
-	return err
+	// Insert the loan into the collection
+	result, err := lr.collection.InsertOne(ctx, loan)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the loan's ID to the newly inserted document's ID
+	loan.ID = result.InsertedID.(primitive.ObjectID)
+
+	return loan, nil
 }
 
 // GetLoanByID retrieves a loan by its ID.

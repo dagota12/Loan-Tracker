@@ -8,7 +8,7 @@ import (
 )
 
 type Loan struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	ID        primitive.ObjectID `json:"_id" bson:"_id,omitempty"`
 	UserID    primitive.ObjectID `json:"user_id" bson:"user_id"` // Reference to the User
 	Amount    float64            `json:"amount" bson:"amount" binding:"required"`
 	Interest  float64            `json:"interest" bson:"interest" binding:"required"`
@@ -22,7 +22,7 @@ type Loan struct {
 // LoanUsecase defines the interface for loan-related business logic.
 type LoanUsecase interface {
 	// ApplyForLoan handles the loan application process.
-	ApplyForLoan(ctx context.Context, loan *Loan) error
+	ApplyForLoan(ctx context.Context, loan *Loan) (*Loan, error)
 
 	// ViewLoanStatus retrieves the status of a specific loan.
 	ViewLoanStatus(ctx context.Context, loanID primitive.ObjectID) (*Loan, error)
@@ -43,7 +43,7 @@ type LoanUsecase interface {
 // LoanRepository defines the interface for loan-related database operations.
 type LoanRepository interface {
 	// CreateLoan adds a new loan to the database.
-	CreateLoan(ctx context.Context, loan *Loan) error
+	CreateLoan(ctx context.Context, loan *Loan) (*Loan, error)
 
 	// GetLoanByID retrieves a loan by its ID.
 	GetLoanByID(ctx context.Context, loanID primitive.ObjectID) (*Loan, error)

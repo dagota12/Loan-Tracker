@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -26,19 +27,23 @@ func NewLoanController(LoanUsecase domain.LoanUsecase, env *bootstrap.Env) *Loan
 // ApplyForLoan handles the POST /loans endpoint to submit a loan application.
 func (lc *LoanController) ApplyForLoan(c *gin.Context) {
 	var loan domain.Loan
-
+	userID := c.MustGet("x-user-id").(string)
 	if err := c.ShouldBindJSON(&loan); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	err := lc.LoanUsecase.ApplyForLoan(c.Request.Context(), &loan)
+	var err error
+	loan.UserID, err = primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+	}
+	creatredLoan, err := lc.LoanUsecase.ApplyForLoan(c.Request.Context(), &loan)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to apply for loan"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, loan)
+	c.JSON(http.StatusCreated, creatredLoan)
 }
 func (lc *LoanController) ViewUserLoans(c *gin.Context) {
 	userID := c.MustGet("x-user-id").(string)
@@ -107,6 +112,10 @@ func (lc *LoanController) ViewAllLoansWithPagination(c *gin.Context) {
 		return
 	}
 
+	if page < 1 || limit < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page or limit parameter"})
+		return
+	}
 	loans, pagination, err := lc.LoanUsecase.ViewAllLoansWithPagination(c.Request.Context(), status, order, page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve loans with pagination"})
@@ -125,9 +134,10 @@ func (lc *LoanController) ApproveRejectLoan(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid loan ID"})
 		return
 	}
-
+	log.Printf("[ctrl] on calling ApproveRejectLoan: %s %s", loanID, status)
 	err = lc.LoanUsecase.ApproveRejectLoan(c.Request.Context(), id, status)
 	if err != nil {
+		log.Println("[ctrl] on ApproveRejectLoan: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update loan status"})
 		return
 	}
