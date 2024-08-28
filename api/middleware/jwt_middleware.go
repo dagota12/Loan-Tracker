@@ -29,9 +29,9 @@ func JwtAuthMiddleware(secret string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		c.Set("x-user-id", claims["id"])
-		c.Set("x-user-role", claims["role"])
-		c.Set("x-user-owner", claims["is_owner"])
+		c.Set("x-user-id", claims.ID)
+		c.Set("x-user-role", claims.Role)
+		c.Set("x-user-owner", claims.IsOwner)
 		c.Next()
 	}
 }

@@ -11,6 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+var (
+	ErrOtpNotFound = errors.New("otp not found")
+)
+
 type resetPasswordRepository struct {
 	database        *mongo.Database
 	usersCollection string
@@ -72,7 +76,7 @@ func (rp *resetPasswordRepository) GetOTPByEmail(ctx context.Context, email stri
 	err := collection.FindOne(ctx, bson.M{"email": email}).Decode(&otp)
 
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, ErrUserNotFound
+		return nil, ErrOtpNotFound
 	}
 
 	if err != nil {
