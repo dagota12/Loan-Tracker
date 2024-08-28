@@ -17,10 +17,13 @@ func NewUsersRouter(env *bootstrap.Env, timeout time.Duration, db *mongo.Databas
 	userUsecase := usecase.NewUserUsecase(userRepo, env)
 	userController := controller.NewUserController(userUsecase)
 
-	group.GET("/admin/users", userController.GetAllUsers)
 	group.GET("/users/profile", userController.GetUserProfile)
-	group.GET("/admin/users/:id", userController.GetUser)
-	group.DELETE("/users/:id", userController.DeleteUser)
+
+	admin := group.Group("")
+	admin.Use(middleware.AdminMiddleware())
+	admin.GET("/admin/users/:id", userController.GetUser)
+	admin.GET("/admin/users", userController.GetAllUsers)
+	admin.DELETE("admin/users/:id", userController.DeleteUser)
 
 	//protected routes
 	protected := group.Group("")
