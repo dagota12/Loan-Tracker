@@ -23,7 +23,7 @@ func NewLoanUsecase(loanRepo domain.LoanRepository, timeout time.Duration) domai
 	}
 }
 
-func (lu *loanUsecase) ApplyForLoan(ctx context.Context, loan *domain.Loan) error {
+func (lu *loanUsecase) ApplyForLoan(ctx context.Context, loan *domain.Loan) (*domain.Loan, error) {
 	// Set initial loan status and timestamps
 	loan.Status = "pending"
 	loan.CreatedAt = time.Now()
