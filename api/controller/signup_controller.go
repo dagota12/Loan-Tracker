@@ -36,7 +36,7 @@ func (sc *SignupController) VerifyEmail(ctx *gin.Context) {
 	}
 
 	claims, err := tokenutil.ExtractUserClaimsFromToken(string(decodedToken), sc.Env.VerificationTokenSecret)
-	userID := claims["id"].(string)
+	userID := claims.ID
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

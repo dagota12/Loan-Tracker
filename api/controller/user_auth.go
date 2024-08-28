@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/dagota12/Loan-Tracker/bootstrap"
@@ -94,8 +95,9 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
+	log.Printf("[ctrl] userclaims: %#v", "claims")
 
-	userID := claims["id"].(string)
+	userID := claims.ID
 	user, err := ac.AuthUsecase.GetUserByID(c, userID)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})

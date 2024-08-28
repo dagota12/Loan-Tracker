@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -82,12 +83,14 @@ func (rc *ResetPasswordController) ResetPassword(ctx *gin.Context) {
 	}
 	user, err := rc.ResetPasswordUsecase.GetUserByEmail(ctx, req.Email)
 	if err != nil {
+		log.Printf("[ctrl] Error getting user by email: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	originalOtp, err := rc.ResetPasswordUsecase.GetOTPByEmail(ctx, req.Email)
 	if err != nil {
+		log.Printf("[ctrl] Error getting otp by email: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -104,11 +107,13 @@ func (rc *ResetPasswordController) ResetPassword(ctx *gin.Context) {
 
 	err = rc.ResetPasswordUsecase.ResetPassword(ctx, user.ID.Hex(), &req)
 	if err != nil {
+		log.Printf("[ctrl] Error to reset user password: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	err = rc.ResetPasswordUsecase.DeleteOtp(ctx, req.Email)
 	if err != nil {
+		log.Printf("[ctrl] Error to delete otp: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
