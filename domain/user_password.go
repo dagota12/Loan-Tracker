@@ -18,7 +18,7 @@ type ForgotPasswordRequest struct {
 
 type UpdatePassword struct {
 	OldPassword string `json:"old_password" bson:"old_password" binding:"required,min=4,max=30"`
-	NewPassword string `json:"password" bson:"password" binding:"required,min=4,max=30"`
+	NewPassword string `json:"new_password" bson:"password" binding:"required,min=4,max=30"`
 }
 type OtpSave struct {
 	Email     string    `json:"email" binding:"required"`
