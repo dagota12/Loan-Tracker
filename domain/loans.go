@@ -12,7 +12,7 @@ type Loan struct {
 	UserID    primitive.ObjectID `json:"user_id" bson:"user_id"` // Reference to the User
 	Amount    float64            `json:"amount" bson:"amount" binding:"required"`
 	Interest  float64            `json:"interest" bson:"interest" binding:"required"`
-	Status    string             `json:"status" bson:"status"` // e.g., "pending", "approved", "rejected", "closed"
+	Status    string             `json:"status" bson:"status"` // e.g., "pending", "approved", "rejected"
 	StartDate time.Time          `json:"start_date" bson:"start_date"`
 	EndDate   time.Time          `json:"end_date" bson:"end_date"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
@@ -59,4 +59,8 @@ type LoanRepository interface {
 
 	// DeleteLoan deletes a loan by its ID (for admin use).
 	DeleteLoan(ctx context.Context, loanID primitive.ObjectID) error
+}
+type LoanFilterParams struct {
+	Status string
+	Order  string
 }
