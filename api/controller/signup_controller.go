@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -21,8 +22,8 @@ type SignupController struct {
 	Env           *bootstrap.Env
 }
 
-func (sc *SignupController) VerifyEmail(c *gin.Context) {
-	Verificationtoken := c.Param("token")
+func (sc *SignupController) VerifyEmail(ctx *gin.Context) {
+	Verificationtoken := ctx.Param("token")
 	decodedToken, _ := b64.URLEncoding.DecodeString(Verificationtoken)
 
 	valid, err := tokenutil.IsAuthorized(string(decodedToken), sc.Env.VerificationTokenSecret)
@@ -30,48 +31,48 @@ func (sc *SignupController) VerifyEmail(c *gin.Context) {
 	fmt.Println(string(decodedToken))
 
 	if !valid || err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
 	claims, err := tokenutil.ExtractUserClaimsFromToken(string(decodedToken), sc.Env.VerificationTokenSecret)
-	userID := claims["id"].(string)
+	userID := claims.ID
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	user, err := sc.SignupUsecase.GetUserById(context.TODO(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	if user.Active {
-		c.JSON(http.StatusConflict, gin.H{"error": "user already verified!"})
+		ctx.JSON(http.StatusConflict, gin.H{"error": "user already verified!"})
 		return
 	}
 
 	err = sc.SignupUsecase.ActivateUser(context.TODO(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Email verified successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "Email verified successfully"})
 
 }
-func (sc *SignupController) Signup(c *gin.Context) {
+func (sc *SignupController) Signup(ctx *gin.Context) {
 	var request domain.SignupRequest
 
-	err := c.ShouldBindJSON(&request)
+	err := ctx.ShouldBindJSON(&request)
 	if err != nil {
 
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 
 		return
 	}
 
-	user, err := sc.SignupUsecase.GetUserByEmail(c, request.Email)
+	_, err = sc.SignupUsecase.GetUserByEmail(context.TODO(), request.Email)
 	if err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "user already exists"})
+		ctx.JSON(http.StatusConflict, gin.H{"error": "user already exists"})
 		return
 	}
 
@@ -80,15 +81,16 @@ func (sc *SignupController) Signup(c *gin.Context) {
 		bcrypt.DefaultCost,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	request.Password = string(encryptedPassword)
 
-	IsOwner, err := sc.SignupUsecase.IsOwner(c, user.ID.Hex())
+	//if there are no users in db this user owner
+	IsOwner, err := sc.SignupUsecase.CanBeOwner(context.TODO())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	var role string
@@ -109,29 +111,33 @@ func (sc *SignupController) Signup(c *gin.Context) {
 		Role:      role,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+		Tokens:    []string{},
 	}
 
 	VerificationToken, err := sc.SignupUsecase.CreateVerificationToken(&NewUser, sc.Env.VerificationTokenSecret, sc.Env.VerificationTokenExpiryMin)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	user.VerifyToken = VerificationToken
+	NewUser.VerifyToken = VerificationToken
 
-	_, err = sc.SignupUsecase.Create(c, &user)
+	_, err = sc.SignupUsecase.Create(context.TODO(), &NewUser)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	//send email
 	encodedToken := b64.URLEncoding.EncodeToString([]byte(VerificationToken))
-	err = sc.SignupUsecase.SendVerificationEmail(user.Email, encodedToken, sc.Env)
+	//prinnt the user;
+	log.Printf("user: %#v", NewUser)
+	err = sc.SignupUsecase.SendVerificationEmail(NewUser.Email, encodedToken, sc.Env)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "email sent successfully, please verify your email"})
+	ctx.JSON(http.StatusCreated, gin.H{"message": "email sent successfully, please verify your email"})
 
 }
